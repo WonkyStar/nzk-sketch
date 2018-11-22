@@ -1,0 +1,16 @@
+{
+  "name": "nzk-sketch",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "pcole <philip@pcole.me>",
+  "license": "MIT",
+  "devDependencies": {
+    "bili": "^3.4.2",
+    "express": "^4.16.4",
+    "nodemon": "^1.18.6"
+  },
+  "scripts": {
+    "build": "./node_modules/.bin/bili --format umd,umd-min src/nzk-sketch.js",
+    "dev": "node ./server.js"
+  }
+}

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
+	<meta name="msapplication-tap-highlight" content="no" />
+  <title>NZK Sketch Example</title>
+  <style>
+    body, html{
+      width: 100%;
+      height: 100%;
+      margin: 0px;
+    }
+    #tools{
+      margin-bottom: 5px;
+    }
+    #sketch-container{
+      width: 640px;
+      height: 480px;
+      background-color: #ebebeb;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <div id="tools">
+    <button id="black-brush">Black</button>
+    <button id="red-brush">Red</button>
+    <button id="blue-brush">Blue</button>
+    <button id='large'>Large</button>
+    <button id='medium'>Medium</button>
+    <button id='small'>Small</button>
+    <button id="erase">Erase</button>
+    <!-- <button id="undo">Undo</button>
+    <button id="redo">Redo</button>
+    <button id="reset">Reset</button> -->
+  </div>
+  <div id="sketch-container"></div>
+  <script type="text/javascript" src="/dist/nzk-sketch.js"></script>
+  <script>
+     let sketch = new nzkSketch({
+       containerEl: document.getElementById('sketch-container'),
+       width: 640,
+       height: 480
+     })
+     window.sketch = sketch
+     document.getElementById("black-brush").onclick = () => sketch.setBrushColour([0,0,0])
+     document.getElementById("blue-brush").onclick = () => sketch.setBrushColour([135,206,235])
+     document.getElementById("red-brush").onclick = () => sketch.setBrushColour([220,20,60])
+     document.getElementById("large").onclick = () => sketch.setBrushSize(18)
+     document.getElementById("medium").onclick = () => sketch.setBrushSize(12)
+     document.getElementById("small").onclick = () => sketch.setBrushSize(6)
+     document.getElementById("erase").onclick = () => sketch.selectEraser()
+    //  document.getElementById("undo").onclick = () => sketch.undo()
+    //  document.getElementById("redo").onclick = () => sketch.redo()
+    //  document.getElementById("reset").onclick = () => sketch.reset()
+  </script>
+</body>
+</html>
