@@ -1,7 +1,7 @@
 {
   "name": "nzk-sketch",
   "version": "0.0.1",
-  "main": "index.js",
+  "main": "./dist/nzk-sketch.js",
   "author": "pcole <philip@pcole.me>",
   "license": "MIT",
   "devDependencies": {
