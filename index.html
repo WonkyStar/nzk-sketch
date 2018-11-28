@@ -25,36 +25,45 @@
 </head>
 <body>
   <div id="tools">
-    <button id="black-brush">Black</button>
-    <button id="red-brush">Red</button>
-    <button id="blue-brush">Blue</button>
+    <button id="black">Black</button>
+    <button id="red">Red</button>
+    <button id="blue">Blue</button>
     <button id='large'>Large</button>
-    <button id='medium'>Medium</button>
-    <button id='small'>Small</button>
+    <button id='regular'>Regular</button>
+    <button id='opaque'>Opaque</button>
+    <button id='transparent'>Transparent</button>
+    <button id='brush'>Brush</button>
+    <button id='fill'>Fill</button>
     <button id="erase">Erase</button>
-    <!-- <button id="undo">Undo</button>
-    <button id="redo">Redo</button>
-    <button id="reset">Reset</button> -->
+    <button id='undo'>undo</button>
+    <button id='redo'>redo</button>
+    <button id='restart'>restart</button>
+    <button id='export'>export</button>
   </div>
   <div id="sketch-container"></div>
   <script type="text/javascript" src="/dist/nzk-sketch.js"></script>
   <script>
      let sketch = new nzkSketch({
-       containerEl: document.getElementById('sketch-container'),
-       width: 640,
-       height: 480
+       containerEl: document.getElementById('sketch-container')
      })
      window.sketch = sketch
-     document.getElementById("black-brush").onclick = () => sketch.setBrushColour([0,0,0])
-     document.getElementById("blue-brush").onclick = () => sketch.setBrushColour([135,206,235])
-     document.getElementById("red-brush").onclick = () => sketch.setBrushColour([220,20,60])
-     document.getElementById("large").onclick = () => sketch.setBrushSize(18)
-     document.getElementById("medium").onclick = () => sketch.setBrushSize(12)
-     document.getElementById("small").onclick = () => sketch.setBrushSize(6)
-     document.getElementById("erase").onclick = () => sketch.selectEraser()
-    //  document.getElementById("undo").onclick = () => sketch.undo()
-    //  document.getElementById("redo").onclick = () => sketch.redo()
-    //  document.getElementById("reset").onclick = () => sketch.reset()
+     document.getElementById("black").onclick = () => sketch.setToolColour([0,0,0])
+     document.getElementById("blue").onclick = () => sketch.setToolColour([135,206,235])
+     document.getElementById("red").onclick = () => sketch.setToolColour([220,20,60])
+     document.getElementById("large").onclick = () => sketch.setToolSize(50)
+     document.getElementById("regular").onclick = () => sketch.setToolSize(15)
+     document.getElementById("opaque").onclick = () => sketch.setToolOpacity(1.0)
+     document.getElementById("transparent").onclick = () => sketch.setToolOpacity(0.5)
+     document.getElementById("brush").onclick = () => sketch.setToolType('brush')
+     document.getElementById("fill").onclick = () => sketch.setToolType('fill')
+     document.getElementById("erase").onclick = () => sketch.setToolType('eraser')
+     document.getElementById("undo").onclick = () => sketch.undo()
+     document.getElementById("redo").onclick = () => sketch.redo()
+     document.getElementById("restart").onclick = () => sketch.restart()
+     document.getElementById("export").onclick = () => {
+       let newTab = window.open()
+       newTab.document.body.innerHTML = `<img src="${sketch.export({ crop: true })}">`
+     }
   </script>
 </body>
 </html>

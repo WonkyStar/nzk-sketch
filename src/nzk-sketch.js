@@ -11,40 +11,133 @@ export default class NZKSketch {
 
     this.containerEl = props.containerEl
 
-    this.template = props.template
-    this.isDrawing = false
-    
+    // Size
+    this.width = props.containerEl.offsetWidth
+    this.height = props.containerEl.offsetHeight
     this.scale = window.devicePixelRatio >= 1.5 ? 2 : 1
-    this.width = props.width
-    this.height = props.height
     this.widthScaled = this.width * this.scale
-		this.heightScaled = this.height * this.scale
+    this.heightScaled = this.height * this.scale
     
+    // Model init
     this.model = new NZKSketchModel()
-    this.model.eraser = false
-    this.model.opacity = 1
 
+    // Optional props
+    this.setToolType(props.toolType || 'brush')
+    this.setToolColour(props.toolColour || [0, 0, 0])
+    this.setToolSize(props.toolSize || 15)
+    this.setToolOpacity(props.toolOpacity || 1.0 )
+
+    // Canvas layers
     this.initDrawingCanvas()
     this.initBufferCanvas()
     this.initCacheCanvas()
-    this.initTouchLayer()
+
+    // Interaction layer
+    this.initInteractionLayer()
+
+    // Drawing settings
     this.initDrawAnimations()
-    
     this.setDrawingStyle(this.model.getStyle(), this.bufferCanvasCtx)
+
+    this.isDrawing = false
   }
 
-  setBrushColour(colour = [0,0,0]) {
-    this.model.eraser = false
-    this.model.colour = colour
+  //
+  // Public API
+  //
+
+  setToolType(type) {
+    switch(type) {
+      case 'eraser':
+        this.model.eraser = true
+        this.model.fill = false
+        this.model.opacity = 1.0
+        break
+      case 'fill': 
+        this.model.eraser = false
+        this.model.fill = true
+        break
+      default: 
+        this.model.eraser = false
+        this.model.fill = false
+    }
   }
 
-  setBrushSize(size = 12) {
+  setToolColour(colour = [0, 0, 0]) {
+    if(this.toolType !== 'eraser') {
+      this.model.colour = colour
+    }
+  }
+
+  setToolSize(size = 15) {
     this.model.size = size
   }
 
-  selectEraser() {
-    this.model.eraser = true
+  setToolOpacity(opacity = 1.0) {
+    if(this.toolType !== 'eraser') {
+      this.model.opacity = opacity
+    }
   }
+
+  export(options = {}) {
+    if(options.crop){
+      const box = this.findBoundingBox()
+    
+      this.initCutCanvas()
+  
+      this.cutCanvas.setAttribute('width', box.width)
+      this.cutCanvas.setAttribute('height', box.height)
+      this.cutCanvasCtx.globalCompositeOperation = 'copy'
+      this.cutCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, box.topLeftX, box.topLeftY, box.width, box.height, 0, 0, box.width, box.height)
+  
+      let image = this.cutCanvas.toDataURL()
+      
+      this.removeCutCanvas()
+  
+      return image
+    } else {
+      this.drawingCanvas.toDataURL()
+    }
+  }
+
+  undo() {
+    if(!this.model.canUndo()) return
+
+    this.model.lastActionIndex--
+    this.drawingCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
+
+    for(let i = 0; i <= this.model.lastActionIndex; i++) {
+      this.drawUndoStroke(this.model.actions[i].object)
+    }
+  }
+
+	redo() {
+    if(!this.model.canRedo()) return 
+
+		this.model.lastActionIndex++
+
+		let action = this.model.actions[this.model.lastActionIndex]
+
+		this.drawUndoStroke(action.object)
+  }
+
+  canUndo() {
+    return this.model.canUndo()
+  }
+
+  canRedo() {
+    return this.model.canRedo()
+  }
+  
+  restart() {
+    this.model.reset()
+    
+    this.drawingCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
+  }
+
+  //
+  // Internal helpers
+  //
 
   setCanvasSize(canvas){
     canvas.width = this.widthScaled
@@ -70,7 +163,7 @@ export default class NZKSketch {
 
   initBufferCanvas() {
     this.bufferCanvas = document.createElement('canvas')
-    this.bufferCanvasCtx = this.drawingCanvas.getContext('2d')
+    this.bufferCanvasCtx = this.bufferCanvas.getContext('2d')
     this.setCanvasSize(this.bufferCanvas)
     this.setLayerStyle(this.bufferCanvas)
     this.bufferCanvas.style.zIndex = 2
@@ -86,20 +179,33 @@ export default class NZKSketch {
     this.containerEl.appendChild(this.cacheCanvas)
   }
 
-  initTouchLayer() {
-    this.touchLayerEl = document.createElement('div')
-    this.setLayerStyle(this.touchLayerEl)
-    this.touchLayerEl.style.zIndex = 3
+  initCutCanvas() {
+    this.cutCanvas = document.createElement('canvas')
+    this.cutCanvasCtx = this.cutCanvas.getContext('2d')
+    this.setCanvasSize(this.cutCanvas)
+    this.setLayerStyle(this.cutCanvas)
+    this.cutCanvas.style.display = 'none'
+    this.containerEl.appendChild(this.cutCanvas)
+  }
+
+  removeCutCanvas() {
+    this.cutCanvas.remove()
+  }
+
+  initInteractionLayer() {
+    this.interactionLayerEl = document.createElement('div')
+    this.setLayerStyle(this.interactionLayerEl)
+    this.interactionLayerEl.style.zIndex = 3
 
     this.onStartMouseDraw = this.onStartMouseDraw.bind(this)
     this.onMoveMouseDraw = this.onMoveMouseDraw.bind(this)
     this.onEndMouseDraw = this.onEndMouseDraw.bind(this)
 
-    this.touchLayerEl.addEventListener("mousedown", this.onStartMouseDraw, false)
-    this.touchLayerEl.addEventListener("mousemove", this.onMoveMouseDraw, false)
-    this.touchLayerEl.addEventListener("mouseup", this.onEndMouseDraw, false)
-    this.touchLayerEl.addEventListener("mouseleave", this.onEndMouseDraw, false)
-    this.touchLayerEl.addEventListener("mouseenter", (ev) => {
+    this.interactionLayerEl.addEventListener("mousedown", this.onStartMouseDraw, false)
+    this.interactionLayerEl.addEventListener("mousemove", this.onMoveMouseDraw, false)
+    this.interactionLayerEl.addEventListener("mouseup", this.onEndMouseDraw, false)
+    this.interactionLayerEl.addEventListener("mouseleave", this.onEndMouseDraw, false)
+    this.interactionLayerEl.addEventListener("mouseenter", (ev) => {
       if (ev.buttons > 0) {
         this.onStartMouseDraw(ev)
       }
@@ -109,11 +215,11 @@ export default class NZKSketch {
     this.onMoveTouchDraw = this.onMoveTouchDraw.bind(this)
     this.onEndTouchDraw = this.onEndTouchDraw.bind(this)
 
-    this.touchLayerEl.addEventListener("touchstart", this.onStartTouchDraw, false)
-    this.touchLayerEl.addEventListener("touchmove", this.onMoveTouchDraw, false)
-    this.touchLayerEl.addEventListener("touchend", this.onEndTouchDraw, false)
+    this.interactionLayerEl.addEventListener("touchstart", this.onStartTouchDraw, false)
+    this.interactionLayerEl.addEventListener("touchmove", this.onMoveTouchDraw, false)
+    this.interactionLayerEl.addEventListener("touchend", this.onEndTouchDraw, false)
 
-    this.containerEl.appendChild(this.touchLayerEl)
+    this.containerEl.appendChild(this.interactionLayerEl)
   }
 
   initDrawAnimations(){
@@ -152,7 +258,7 @@ export default class NZKSketch {
   }
 
   getMousePoint (ev) {
-    let rect = this.touchLayerEl.getBoundingClientRect()
+    let rect = this.interactionLayerEl.getBoundingClientRect()
 
     return {
       x: (ev.clientX - rect.left) * this.scale,
@@ -161,7 +267,7 @@ export default class NZKSketch {
   }
 
   getTouchPoint (ev) {
-    let rect = this.touchLayerEl.getBoundingClientRect()
+    let rect = this.interactionLayerEl.getBoundingClientRect()
 
     return {
       x: (ev.touches[0].clientX - rect.left) * this.scale,
@@ -197,9 +303,17 @@ export default class NZKSketch {
 
   startDraw(point) {
     this.isDrawing = true
-    this.model.initStroke(point)
-    this.setDrawingStyle(this.model.currentStroke.style, this.bufferCanvasCtx)
-    this.strokeAnimation()
+
+		this.model.initStroke(point)
+
+		if(this.model.currentStroke.style.eraser && this.model.currentStroke.style.opacity === 1.0) {
+      this.cacheCanvasCtx.globalCompositeOperation = "copy"
+			this.cacheCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled)
+      this.setDrawingStyle(this.model.currentStroke.style, this.drawingCanvasCtx)
+    }
+
+	  this.setDrawingStyle(this.model.currentStroke.style, this.bufferCanvasCtx)
+		this.strokeAnimation() 
   }
 
   continueDraw(point) {
@@ -208,9 +322,10 @@ export default class NZKSketch {
   }
 
   endDraw(point) {
+    if(!this.model.currentStroke) return
     this.isDrawing = false
     this.endStrokeAnimation() 
-    this.bufferCanvasCtx.clearRect(0, 0, this.canvasWidthScaled, this.canvasHeightScaled)
+    this.bufferCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
     this.drawFinishedStroke(this.model.currentStroke)
     this.model.saveStroke()
   }
@@ -275,12 +390,8 @@ export default class NZKSketch {
     }
   }
 
-	getDrawingDataUrl(){
-    return this.drawingCanvas.toDataURL()
-  } 
-
 	drawTransparentFillFinal(stroke) {
-		this.cacheCanvasCtx.clearRect(0, 0, this.canvasWidthScaled, this.canvasHeightScaled)
+		this.cacheCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
     this.cacheCanvasCtx.globalCompositeOperation = "source-over"
     stroke.style.opacity = stroke.style.opacity || 1
 		this.setDrawingStyle(stroke.style, this.cacheCanvasCtx)
@@ -291,7 +402,7 @@ export default class NZKSketch {
 
 		this.drawingCanvasCtx.globalCompositeOperation = "source-over"
 		this.drawingCanvasCtx.globalAlpha = stroke.style.opacity
-		this.drawingCanvasCtx.drawImage(this.cacheCanvasCtx.canvas, 0, 0, this.canvasWidthScaled, this.canvasHeightScaled)
+		this.drawingCanvasCtx.drawImage(this.cacheCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled)
     this.drawingCanvasCtx.globalAlpha = 1.0
   }
 
@@ -310,7 +421,7 @@ export default class NZKSketch {
   }
 
 	drawFillAndStroke(stroke) {
-		this.bufferCanvasCtx.clearRect(0, 0, this.canvasWidthScaled, this.canvasHeightScaled)
+		this.bufferCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
 		this.trace(stroke, this.bufferCanvasCtx)
     this.bufferCanvasCtx.stroke()
   }
@@ -332,7 +443,7 @@ export default class NZKSketch {
 	drawEraser(stroke, copy = true) {
 		if(copy){
 			this.drawingCanvasCtx.globalCompositeOperation = "copy"
-      this.drawingCanvasCtx.drawImage(this.cacheCanvasCtx.canvas, 0, 0, this.canvasWidthScaled, this.canvasHeightScaled)
+      this.drawingCanvasCtx.drawImage(this.cacheCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled)
     }
 
 		this.drawingCanvasCtx.globalCompositeOperation = "destination-out"
@@ -343,7 +454,7 @@ export default class NZKSketch {
 	drawEraserFillFinal(stroke, copy = true){
 		if(copy) {
 			this.drawingCanvasCtx.globalCompositeOperation = "copy"
-      this.drawingCanvasCtx.drawImage(this.cacheCanvasCtx.canvas, 0, 0, this.canvasWidthScaled, this.canvasHeightScaled)
+      this.drawingCanvasCtx.drawImage(this.cacheCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled)
     }
 
 		this.drawingCanvasCtx.globalCompositeOperation = "destination-out"
@@ -352,51 +463,33 @@ export default class NZKSketch {
 		this.drawingCanvasCtx.fill()
     this.drawingCanvasCtx.stroke()
   }
+
+  findBoundingBox() {
+    let imageData = this.drawingCanvasCtx.getImageData(0, 0, this.widthScaled, this.heightScaled)
+
+    let box = {
+      topLeftX: this.widthScaled,
+      topLeftY: this.heightScaled,
+      bottomRightX: 0,
+      bottomRightY: 0
+    }
+
+    for(let x = 0; x < this.widthScaled; x++){
+      for(let y = 0; y < this.heightScaled; y++){
+        let pixelPosition = (((y * this.widthScaled) + x) * 4) + 3
+
+        if(imageData.data[pixelPosition] > 0){
+          if(x < box.topLeftX) box.topLeftX = x
+          if(y < box.topLeftY) box.topLeftY = y
+          if(x > box.bottomRightX) box.bottomRightX = x
+          if(y > box.bottomRightY) box.bottomRightY = y
+        }
+      }
+    }
+
+    box.width = box.bottomRightX - box.topLeftX
+    box.height = box.bottomRightY - box.topLeftY
+
+    return box
+  }
 }
-
-// 	undo: ->
-// 		if this.model.canUndo()
-// 			this.model.latestActionIndex--
-
-// 			this.drawingCanvasCtx.clearRect(0, 0, this.canvasWidthScaled, this.canvasHeightScaled)
-
-// 			this.importImage()
-
-// 			if this.model.latestActionIndex > -1
-// 				q = queue(1)
-
-// 				for action in this.model.actions[0..this.model.latestActionIndex]
-// 					do (action) =>
-// 						if action.type is 'image'
-// 							q.defer (cb) =>
-// 								this.drawImage(action.object, cb)
-// 						else
-// 							q.defer (cb) =>
-// 								this.drawUndoStroke(action.object)
-// 								cb()
-
-// 			this.trigger('change-drawing')
-
-// 			return true
-
-// 	redo: ->
-// 		if this.model.canRedo()
-// 			this.model.latestActionIndex++
-
-// 			action = this.model.actions[this.model.latestActionIndex]
-
-// 			if action.type is 'image'
-// 				this.drawImage action.object, =>
-// 					this.trigger('change-drawing')
-// 			else
-// 				this.drawUndoStroke(action.object)
-// 				this.trigger('change-drawing')
-
-// 	restart: ->
-// 		this.model.reset()
-
-// 		this.drawingCanvasCtx.clearRect(0, 0, this.canvasWidthScaled, this.canvasHeightScaled)
-
-// 		this.trigger('change-drawing')
-
-// 		this.importImage()

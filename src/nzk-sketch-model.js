@@ -4,6 +4,8 @@ import NZKSketchStrokeModel from './nzk-sketch-stroke-model'
 export default class NzkSketchModel {
   constructor() {
     this.colour = [0, 0, 0]
+    this.eraser = false
+    this.fill = false
     this.opacity = 1.0
     this.size = 10
     this.scale = window.devicePixelRatio >= 1.5 ? 2 : 1
@@ -17,13 +19,14 @@ export default class NzkSketchModel {
   }
 
   generateStyleKey() {
-    return `${this.opacity === 1.0 ? 'opaque' : 'transparent'}${this.eraser ? 'Eraser' : 'Colour'}${this.fill ? 'Fill' : 'Stroke'}`
+    return `${this.eraser || this.opacity === 1.0 ? 'opaque' : 'transparent'}${this.eraser ? 'Eraser' : 'Colour'}${this.fill ? 'Fill' : 'Stroke'}`
   }
 
   getStyle() {
     return {
       opacity: this.opacity,
       colour: this.colour,
+      eraser: this.eraser,
       size: this.sizeScaled(),
       key: this.generateStyleKey()
     }
@@ -34,7 +37,7 @@ export default class NzkSketchModel {
       if(this.lastActionIndex === -1){
         this.actions = []
       } else {
-        this.actions = this.actions.slice(0, +this.lastActionIndex + 1 || 9e9)
+        this.actions = this.actions.slice(0, this.lastActionIndex + 1)
       }
     }
 
