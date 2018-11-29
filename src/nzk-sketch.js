@@ -201,10 +201,10 @@ export default class NZKSketch {
     this.onMoveMouseDraw = this.onMoveMouseDraw.bind(this)
     this.onEndMouseDraw = this.onEndMouseDraw.bind(this)
 
-    this.interactionLayerEl.addEventListener("mousedown", this.onStartMouseDraw, false)
-    this.interactionLayerEl.addEventListener("mousemove", this.onMoveMouseDraw, false)
-    this.interactionLayerEl.addEventListener("mouseup", this.onEndMouseDraw, false)
-    this.interactionLayerEl.addEventListener("mouseleave", this.onEndMouseDraw, false)
+    this.interactionLayerEl.addEventListener("mousedown", this.onStartMouseDraw)
+    this.interactionLayerEl.addEventListener("mousemove", this.onMoveMouseDraw)
+    this.interactionLayerEl.addEventListener("mouseup", this.onEndMouseDraw)
+    this.interactionLayerEl.addEventListener("mouseleave", this.onEndMouseDraw)
     this.interactionLayerEl.addEventListener("mouseenter", (ev) => {
       if (ev.buttons > 0) {
         this.onStartMouseDraw(ev)
@@ -215,9 +215,10 @@ export default class NZKSketch {
     this.onMoveTouchDraw = this.onMoveTouchDraw.bind(this)
     this.onEndTouchDraw = this.onEndTouchDraw.bind(this)
 
-    this.interactionLayerEl.addEventListener("touchstart", this.onStartTouchDraw, false)
-    this.interactionLayerEl.addEventListener("touchmove", this.onMoveTouchDraw, false)
-    this.interactionLayerEl.addEventListener("touchend", this.onEndTouchDraw, false)
+    this.interactionLayerEl.addEventListener("touchstart", this.onStartTouchDraw)
+    this.interactionLayerEl.addEventListener("touchmove", this.onMoveTouchDraw)
+    this.interactionLayerEl.addEventListener("touchend", this.onEndTouchDraw)
+    this.interactionLayerEl.addEventListener("touchcancel", this.onEndTouchDraw)
 
     this.containerEl.appendChild(this.interactionLayerEl)
   }
@@ -276,29 +277,34 @@ export default class NZKSketch {
   }
 
   onStartMouseDraw(ev) {
-    ev.preventDefault() // prevents scroll
+    ev.preventDefault()
     this.startDraw(this.getMousePoint(ev))
   }
 
   onStartTouchDraw(ev) {
-    ev.preventDefault() // prevents scroll
+    ev.preventDefault()
+    ev.stopPropagation()
     this.startDraw(this.getTouchPoint(ev))
   }
 
   onMoveMouseDraw(ev) {
+    ev.preventDefault()
+    ev.stopPropagation()
     this.continueDraw(this.getMousePoint(ev))
   }
 
   onMoveTouchDraw(ev) {
+    ev.preventDefault()
+    ev.stopPropagation()
     this.continueDraw(this.getTouchPoint(ev))
   }
 
   onEndMouseDraw(ev) {
-    this.endDraw(this.getMousePoint(ev))
+    this.endDraw()
   }
 
   onEndTouchDraw(ev) {
-    this.endDraw(this.getTouchPoint(ev))
+    this.endDraw()
   }
 
   startDraw(point) {
@@ -312,8 +318,9 @@ export default class NZKSketch {
       this.setDrawingStyle(this.model.currentStroke.style, this.drawingCanvasCtx)
     }
 
-	  this.setDrawingStyle(this.model.currentStroke.style, this.bufferCanvasCtx)
-		this.strokeAnimation() 
+    this.setDrawingStyle(this.model.currentStroke.style, this.bufferCanvasCtx)
+
+    this.strokeAnimation() 
   }
 
   continueDraw(point) {
@@ -321,7 +328,7 @@ export default class NZKSketch {
     this.model.continueStroke(point)
   }
 
-  endDraw(point) {
+  endDraw() {
     if(!this.model.currentStroke) return
     this.isDrawing = false
     this.endStrokeAnimation() 

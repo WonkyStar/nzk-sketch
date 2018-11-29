@@ -457,10 +457,10 @@
         this.onStartMouseDraw = this.onStartMouseDraw.bind(this);
         this.onMoveMouseDraw = this.onMoveMouseDraw.bind(this);
         this.onEndMouseDraw = this.onEndMouseDraw.bind(this);
-        this.interactionLayerEl.addEventListener("mousedown", this.onStartMouseDraw, false);
-        this.interactionLayerEl.addEventListener("mousemove", this.onMoveMouseDraw, false);
-        this.interactionLayerEl.addEventListener("mouseup", this.onEndMouseDraw, false);
-        this.interactionLayerEl.addEventListener("mouseleave", this.onEndMouseDraw, false);
+        this.interactionLayerEl.addEventListener("mousedown", this.onStartMouseDraw);
+        this.interactionLayerEl.addEventListener("mousemove", this.onMoveMouseDraw);
+        this.interactionLayerEl.addEventListener("mouseup", this.onEndMouseDraw);
+        this.interactionLayerEl.addEventListener("mouseleave", this.onEndMouseDraw);
         this.interactionLayerEl.addEventListener("mouseenter", function (ev) {
           if (ev.buttons > 0) {
             _this.onStartMouseDraw(ev);
@@ -469,9 +469,10 @@
         this.onStartTouchDraw = this.onStartTouchDraw.bind(this);
         this.onMoveTouchDraw = this.onMoveTouchDraw.bind(this);
         this.onEndTouchDraw = this.onEndTouchDraw.bind(this);
-        this.interactionLayerEl.addEventListener("touchstart", this.onStartTouchDraw, false);
-        this.interactionLayerEl.addEventListener("touchmove", this.onMoveTouchDraw, false);
-        this.interactionLayerEl.addEventListener("touchend", this.onEndTouchDraw, false);
+        this.interactionLayerEl.addEventListener("touchstart", this.onStartTouchDraw);
+        this.interactionLayerEl.addEventListener("touchmove", this.onMoveTouchDraw);
+        this.interactionLayerEl.addEventListener("touchend", this.onEndTouchDraw);
+        this.interactionLayerEl.addEventListener("touchcancel", this.onEndTouchDraw);
         this.containerEl.appendChild(this.interactionLayerEl);
       }
     }, {
@@ -529,36 +530,39 @@
     }, {
       key: "onStartMouseDraw",
       value: function onStartMouseDraw(ev) {
-        ev.preventDefault(); // prevents scroll
-
+        ev.preventDefault();
         this.startDraw(this.getMousePoint(ev));
       }
     }, {
       key: "onStartTouchDraw",
       value: function onStartTouchDraw(ev) {
-        ev.preventDefault(); // prevents scroll
-
+        ev.preventDefault();
+        ev.stopPropagation();
         this.startDraw(this.getTouchPoint(ev));
       }
     }, {
       key: "onMoveMouseDraw",
       value: function onMoveMouseDraw(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
         this.continueDraw(this.getMousePoint(ev));
       }
     }, {
       key: "onMoveTouchDraw",
       value: function onMoveTouchDraw(ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
         this.continueDraw(this.getTouchPoint(ev));
       }
     }, {
       key: "onEndMouseDraw",
       value: function onEndMouseDraw(ev) {
-        this.endDraw(this.getMousePoint(ev));
+        this.endDraw();
       }
     }, {
       key: "onEndTouchDraw",
       value: function onEndTouchDraw(ev) {
-        this.endDraw(this.getTouchPoint(ev));
+        this.endDraw();
       }
     }, {
       key: "startDraw",
@@ -583,7 +587,7 @@
       }
     }, {
       key: "endDraw",
-      value: function endDraw(point) {
+      value: function endDraw() {
         if (!this.model.currentStroke) return;
         this.isDrawing = false;
         this.endStrokeAnimation();
