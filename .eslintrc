@@ -1,0 +1,15 @@
+{
+    "extends": ["standard"],
+    "globals": {
+        "LEGACY_ASSETS_PATH": true,
+        "ASSETS_PATH": true,
+        "shallow": true,
+        "mount": true,
+        "render": true
+    },
+    "parser": "babel-eslint",
+    "env": {
+        "jest": true,
+        "browser": true
+    }
+}
