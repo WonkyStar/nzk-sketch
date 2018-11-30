@@ -262,7 +262,8 @@
       this.height = props.containerEl.offsetHeight;
       this.scale = window.devicePixelRatio >= 1.5 ? 2 : 1;
       this.widthScaled = this.width * this.scale;
-      this.heightScaled = this.height * this.scale; // Model init
+      this.heightScaled = this.height * this.scale;
+      this.orientation = this.width > this.height ? 'landscape' : 'portrait'; // Model init
 
       this.model = new NzkSketchModel(); // Optional props
 
@@ -333,20 +334,46 @@
       key: "export",
       value: function _export() {
         var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        options.crop = options.crop || false;
+        options.maxWidth = options.maxWidth || false;
+        options.maxHeight = options.maxHeight || false; // Just export staight from the drawingCanvas if no processing required
+
+        if (!options.crop && !options.maxWidth && !options.maxHeight) {
+          return this.drawingCanvas.toDataURL();
+        }
+
+        var box = {
+          topLeftX: 0,
+          topLeftY: 0,
+          width: this.widthScaled,
+          height: this.heightScaled
+        };
 
         if (options.crop) {
-          var box = this.findBoundingBox();
-          this.initCutCanvas();
-          this.cutCanvas.setAttribute('width', box.width);
-          this.cutCanvas.setAttribute('height', box.height);
-          this.cutCanvasCtx.globalCompositeOperation = 'copy';
-          this.cutCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, box.topLeftX, box.topLeftY, box.width, box.height, 0, 0, box.width, box.height);
-          var image = this.cutCanvas.toDataURL();
-          this.removeCutCanvas();
-          return image;
-        } else {
-          this.drawingCanvas.toDataURL();
+          box = this.findBoundingBox();
         }
+
+        var shrinkRatio = 1;
+        var widthShrinkRatio = 1;
+        var heightShrinkRatio = 1;
+
+        if (options.maxWidth && box.width > options.maxWidth) {
+          widthShrinkRatio = box.width / options.maxWidth;
+        }
+
+        if (options.maxHeight && box.height > options.maxHeight) {
+          heightShrinkRatio = box.height / options.maxHeight;
+        }
+
+        shrinkRatio = Math.max(widthShrinkRatio, heightShrinkRatio);
+        this.initExportCanvas();
+        this.exportCanvas.setAttribute('width', box.width / shrinkRatio);
+        this.exportCanvas.setAttribute('height', box.height / shrinkRatio);
+        this.exportCanvasCtx.globalCompositeOperation = 'copy';
+        this.exportCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, box.topLeftX, box.topLeftY, box.width, box.height, 0, 0, box.width / shrinkRatio, box.height / shrinkRatio);
+        var image = this.exportCanvas.toDataURL();
+        this.removeExportCanvas();
+        return image;
       }
     }, {
       key: "undo",
@@ -432,19 +459,19 @@
         this.containerEl.appendChild(this.cacheCanvas);
       }
     }, {
-      key: "initCutCanvas",
-      value: function initCutCanvas() {
-        this.cutCanvas = document.createElement('canvas');
-        this.cutCanvasCtx = this.cutCanvas.getContext('2d');
-        this.setCanvasSize(this.cutCanvas);
-        this.setLayerStyle(this.cutCanvas);
-        this.cutCanvas.style.display = 'none';
-        this.containerEl.appendChild(this.cutCanvas);
+      key: "initExportCanvas",
+      value: function initExportCanvas() {
+        this.exportCanvas = document.createElement('canvas');
+        this.exportCanvasCtx = this.exportCanvas.getContext('2d');
+        this.setCanvasSize(this.exportCanvas);
+        this.setLayerStyle(this.exportCanvas);
+        this.exportCanvas.style.display = 'none';
+        this.containerEl.appendChild(this.exportCanvas);
       }
     }, {
-      key: "removeCutCanvas",
-      value: function removeCutCanvas() {
-        this.cutCanvas.remove();
+      key: "removeExportCanvas",
+      value: function removeExportCanvas() {
+        this.exportCanvas.remove();
       }
     }, {
       key: "initInteractionLayer",

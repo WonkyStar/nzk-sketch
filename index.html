@@ -39,6 +39,7 @@
     <button id='redo'>redo</button>
     <button id='restart'>restart</button>
     <button id='export'>export</button>
+    <button id='export-processed'>export processed</button>
   </div>
   <div id="sketch-container"></div>
   <script type="text/javascript" src="/dist/nzk-sketch.js"></script>
@@ -62,7 +63,15 @@
      document.getElementById("restart").onclick = () => sketch.restart()
      document.getElementById("export").onclick = () => {
        let newTab = window.open()
-       newTab.document.body.innerHTML = `<img src="${sketch.export({ crop: true })}">`
+       newTab.document.body.innerHTML = `<img src="${sketch.export()}">`
+     }
+     document.getElementById("export-processed").onclick = () => {
+       let newTab = window.open()
+       newTab.document.body.innerHTML = `<img src="${sketch.export({ 
+         crop: true,
+         maxWidth: 250,
+         maxHeight: 250
+        })}">`
      }
   </script>
 </body>

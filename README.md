@@ -43,7 +43,7 @@ You can currently choose between 3 types of tools:
 This sets the colour what will be use by your selected tool. The eraser tool will ignore this setting. It takes a single RGB array argument.
 
 ```javascript
-  sketch.setBrushColour([255,255,255]) 
+  sketch.setToolColour([255,255,255]) 
 ```
 
 ### setToolSize
@@ -63,10 +63,14 @@ Use this to change the tool opacity. It takes a float from 0.1 to 1.0 as argumen
 ### export(options)
 This returns a base64 encoded dataUrl of the whole drawing canvas. Options include:
 * `crop`: Boolean, default to false. If true, the exported image will be cropped to match the actual size of the drawing.
+* `maxWidth`: The max width of the exported image
+* `maxHeight`: The max height of the exported image
 
 ```javascript
   sketch.export({
-    crop: false // default
+    crop: true, // default false
+    maxWidth: 250, // default false
+    maxHeight: 250 // default false
   }) 
 ```
 
@@ -91,7 +95,6 @@ This completely clears the current drawing. You can't undo this action.
 
 ## TODO
 
-* Add maxWidth and maxHeight options to the export method
 * Automatically adapt to the container size if it changes after the first page load.
 * `addTemplate`: New method to allow for adding one or more template images and specify if each image should be included in the exported drawing.
 * FIX fill tool when opacity is less than 1.0
