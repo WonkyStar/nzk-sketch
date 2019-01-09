@@ -18,6 +18,7 @@ export default class NZKSketch {
     this.widthScaled = this.width * this.scale
     this.heightScaled = this.height * this.scale
     this.orientation = (this.width > this.height) ? 'landscape' : 'portrait'
+    this.template = props.template
     
     // Model init
     this.model = new NZKSketchModel()
@@ -29,6 +30,9 @@ export default class NZKSketch {
     this.setToolOpacity(props.toolOpacity || 1.0 )
 
     // Canvas layers
+    if(this.template) {
+      this.initTemplateCanvas(this.template) 
+    }
     this.initDrawingCanvas()
     this.initBufferCanvas()
     this.initCacheCanvas()
@@ -84,12 +88,16 @@ export default class NZKSketch {
     options.crop = options.crop || false
     options.maxWidth = options.maxWidth || false
     options.maxHeight = options.maxHeight || false
+    let canvasToExport = null
 
-    // Just export staight from the drawingCanvas if no processing required
-    if(!options.crop && !options.maxWidth && !options.maxHeight) {
-      return this.drawingCanvas.toDataURL()
+    // If there is a template merge the drawing onto it and export that
+    if(this.template) {
+      this.templateCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled)
+      canvasToExport = this.templateCanvasCtx
+    } else {
+      canvasToExport = this.drawingCanvasCtx
     }
-
+    
     let box = {
       topLeftX: 0,
       topLeftY: 0,
@@ -98,7 +106,7 @@ export default class NZKSketch {
     }
 
     if(options.crop){
-      box = this.findBoundingBox()
+      box = this.findBoundingBox(canvasToExport)
     }
 
     let shrinkRatio = 1
@@ -119,7 +127,7 @@ export default class NZKSketch {
     this.exportCanvas.setAttribute('width', box.width / shrinkRatio)
     this.exportCanvas.setAttribute('height', box.height / shrinkRatio)
     this.exportCanvasCtx.globalCompositeOperation = 'copy'
-    this.exportCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, box.topLeftX,  box.topLeftY, box.width, box.height, 0, 0, box.width / shrinkRatio, box.height / shrinkRatio)
+    this.exportCanvasCtx.drawImage(canvasToExport.canvas, box.topLeftX,  box.topLeftY, box.width, box.height, 0, 0, box.width / shrinkRatio, box.height / shrinkRatio)
     let image = this.exportCanvas.toDataURL()
     
     this.removeExportCanvas()
@@ -177,6 +185,16 @@ export default class NZKSketch {
     el.style.position = 'absolute'
     el.style.left = '0px'
     el.style.top = '0px'
+  }
+
+  initTemplateCanvas(template) {
+    this.templateCanvas = document.createElement('canvas')
+    this.templateCanvasCtx = this.templateCanvas.getContext('2d')
+    this.setCanvasSize(this.templateCanvas)
+    this.setLayerStyle(this.templateCanvas)
+    this.templateCanvasCtx.drawImage(template, 0, 0, this.widthScaled, this.heightScaled)
+    this.templateCanvas.style.zIndex = 0
+    this.containerEl.appendChild(this.templateCanvas)
   }
 
   initDrawingCanvas() {
@@ -498,8 +516,8 @@ export default class NZKSketch {
     this.drawingCanvasCtx.stroke()
   }
 
-  findBoundingBox() {
-    let imageData = this.drawingCanvasCtx.getImageData(0, 0, this.widthScaled, this.heightScaled)
+  findBoundingBox(ctx) {
+    let imageData = ctx.getImageData(0, 0, this.widthScaled, this.heightScaled)
 
     let box = {
       topLeftX: this.widthScaled,

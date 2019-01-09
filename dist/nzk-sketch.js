@@ -263,7 +263,8 @@
       this.scale = window.devicePixelRatio >= 1.5 ? 2 : 1;
       this.widthScaled = this.width * this.scale;
       this.heightScaled = this.height * this.scale;
-      this.orientation = this.width > this.height ? 'landscape' : 'portrait'; // Model init
+      this.orientation = this.width > this.height ? 'landscape' : 'portrait';
+      this.template = props.template; // Model init
 
       this.model = new NzkSketchModel(); // Optional props
 
@@ -271,6 +272,10 @@
       this.setToolColour(props.toolColour || [0, 0, 0]);
       this.setToolSize(props.toolSize || 15);
       this.setToolOpacity(props.toolOpacity || 1.0); // Canvas layers
+
+      if (this.template) {
+        this.initTemplateCanvas(this.template);
+      }
 
       this.initDrawingCanvas();
       this.initBufferCanvas();
@@ -336,10 +341,14 @@
         var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
         options.crop = options.crop || false;
         options.maxWidth = options.maxWidth || false;
-        options.maxHeight = options.maxHeight || false; // Just export staight from the drawingCanvas if no processing required
+        options.maxHeight = options.maxHeight || false;
+        var canvasToExport = null; // If there is a template merge the drawing onto it and export that
 
-        if (!options.crop && !options.maxWidth && !options.maxHeight) {
-          return this.drawingCanvas.toDataURL();
+        if (this.template) {
+          this.templateCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled);
+          canvasToExport = this.templateCanvasCtx;
+        } else {
+          canvasToExport = this.drawingCanvasCtx;
         }
 
         var box = {
@@ -350,7 +359,7 @@
         };
 
         if (options.crop) {
-          box = this.findBoundingBox();
+          box = this.findBoundingBox(canvasToExport);
         }
 
         var shrinkRatio = 1;
@@ -370,7 +379,7 @@
         this.exportCanvas.setAttribute('width', box.width / shrinkRatio);
         this.exportCanvas.setAttribute('height', box.height / shrinkRatio);
         this.exportCanvasCtx.globalCompositeOperation = 'copy';
-        this.exportCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, box.topLeftX, box.topLeftY, box.width, box.height, 0, 0, box.width / shrinkRatio, box.height / shrinkRatio);
+        this.exportCanvasCtx.drawImage(canvasToExport.canvas, box.topLeftX, box.topLeftY, box.width, box.height, 0, 0, box.width / shrinkRatio, box.height / shrinkRatio);
         var image = this.exportCanvas.toDataURL();
         this.removeExportCanvas();
         return image;
@@ -427,6 +436,17 @@
         el.style.position = 'absolute';
         el.style.left = '0px';
         el.style.top = '0px';
+      }
+    }, {
+      key: "initTemplateCanvas",
+      value: function initTemplateCanvas(template) {
+        this.templateCanvas = document.createElement('canvas');
+        this.templateCanvasCtx = this.templateCanvas.getContext('2d');
+        this.setCanvasSize(this.templateCanvas);
+        this.setLayerStyle(this.templateCanvas);
+        this.templateCanvasCtx.drawImage(template, 0, 0, this.widthScaled, this.heightScaled);
+        this.templateCanvas.style.zIndex = 0;
+        this.containerEl.appendChild(this.templateCanvas);
       }
     }, {
       key: "initDrawingCanvas",
@@ -779,8 +799,8 @@
       }
     }, {
       key: "findBoundingBox",
-      value: function findBoundingBox() {
-        var imageData = this.drawingCanvasCtx.getImageData(0, 0, this.widthScaled, this.heightScaled);
+      value: function findBoundingBox(ctx) {
+        var imageData = ctx.getImageData(0, 0, this.widthScaled, this.heightScaled);
         var box = {
           topLeftX: this.widthScaled,
           topLeftY: this.heightScaled,

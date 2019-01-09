@@ -44,35 +44,40 @@
   <div id="sketch-container"></div>
   <script type="text/javascript" src="/dist/nzk-sketch.js"></script>
   <script>
-     let sketch = new nzkSketch({
-       containerEl: document.getElementById('sketch-container')
-     })
-     window.sketch = sketch
-     document.getElementById("black").onclick = () => sketch.setToolColour([0,0,0])
-     document.getElementById("blue").onclick = () => sketch.setToolColour([135,206,235])
-     document.getElementById("red").onclick = () => sketch.setToolColour([220,20,60])
-     document.getElementById("large").onclick = () => sketch.setToolSize(50)
-     document.getElementById("regular").onclick = () => sketch.setToolSize(15)
-     document.getElementById("opaque").onclick = () => sketch.setToolOpacity(1.0)
-     document.getElementById("transparent").onclick = () => sketch.setToolOpacity(0.5)
-     document.getElementById("brush").onclick = () => sketch.setToolType('brush')
-     document.getElementById("fill").onclick = () => sketch.setToolType('fill')
-     document.getElementById("erase").onclick = () => sketch.setToolType('eraser')
-     document.getElementById("undo").onclick = () => sketch.undo()
-     document.getElementById("redo").onclick = () => sketch.redo()
-     document.getElementById("restart").onclick = () => sketch.restart()
-     document.getElementById("export").onclick = () => {
-       let newTab = window.open()
-       newTab.document.body.innerHTML = `<img src="${sketch.export()}">`
-     }
-     document.getElementById("export-processed").onclick = () => {
-       let newTab = window.open()
-       newTab.document.body.innerHTML = `<img src="${sketch.export({ 
-         crop: true,
-         maxWidth: 250,
-         maxHeight: 250
+    let template = new Image()
+    template.onload = () => {
+      let sketch = new nzkSketch({
+        containerEl: document.getElementById('sketch-container'),
+        template: template
+      })
+      window.sketch = sketch
+      document.getElementById("black").onclick = () => sketch.setToolColour([0,0,0])
+      document.getElementById("blue").onclick = () => sketch.setToolColour([135,206,235])
+      document.getElementById("red").onclick = () => sketch.setToolColour([220,20,60])
+      document.getElementById("large").onclick = () => sketch.setToolSize(50)
+      document.getElementById("regular").onclick = () => sketch.setToolSize(15)
+      document.getElementById("opaque").onclick = () => sketch.setToolOpacity(1.0)
+      document.getElementById("transparent").onclick = () => sketch.setToolOpacity(0.5)
+      document.getElementById("brush").onclick = () => sketch.setToolType('brush')
+      document.getElementById("fill").onclick = () => sketch.setToolType('fill')
+      document.getElementById("erase").onclick = () => sketch.setToolType('eraser')
+      document.getElementById("undo").onclick = () => sketch.undo()
+      document.getElementById("redo").onclick = () => sketch.redo()
+      document.getElementById("restart").onclick = () => sketch.restart()
+      document.getElementById("export").onclick = () => {
+        let newTab = window.open()
+        newTab.document.body.innerHTML = `<img src="${sketch.export()}">`
+      }
+      document.getElementById("export-processed").onclick = () => {
+        let newTab = window.open()
+        newTab.document.body.innerHTML = `<img src="${sketch.export({ 
+          crop: true,
+          maxWidth: 250,
+          maxHeight: 250
         })}">`
-     }
+      }
+    }
+    template.src = '/test-template.png'
   </script>
 </body>
 </html>
