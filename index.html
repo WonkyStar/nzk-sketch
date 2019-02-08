@@ -34,7 +34,8 @@
     <button id='transparent'>Transparent</button>
     <button id='brush'>Brush</button>
     <button id='fill'>Fill</button>
-    <button id="erase">Erase</button>
+    <button id="erase-on">Eraser On</button>
+    <button id="erase-off">Eraser Off</button>
     <button id='undo'>undo</button>
     <button id='redo'>redo</button>
     <button id='restart'>restart</button>
@@ -51,16 +52,17 @@
         template: template
       })
       window.sketch = sketch
-      document.getElementById("black").onclick = () => sketch.setToolColour([0,0,0])
-      document.getElementById("blue").onclick = () => sketch.setToolColour([135,206,235])
-      document.getElementById("red").onclick = () => sketch.setToolColour([220,20,60])
-      document.getElementById("large").onclick = () => sketch.setToolSize(50)
-      document.getElementById("regular").onclick = () => sketch.setToolSize(15)
-      document.getElementById("opaque").onclick = () => sketch.setToolOpacity(1.0)
-      document.getElementById("transparent").onclick = () => sketch.setToolOpacity(0.5)
-      document.getElementById("brush").onclick = () => sketch.setToolType('brush')
-      document.getElementById("fill").onclick = () => sketch.setToolType('fill')
-      document.getElementById("erase").onclick = () => sketch.setToolType('eraser')
+      document.getElementById("black").onclick = () => sketch.setBrush({colour: [0,0,0]})
+      document.getElementById("blue").onclick = () => sketch.setBrush({colour: [135,206,235]})
+      document.getElementById("red").onclick = () => sketch.setBrush({colour:[220,20,60]})
+      document.getElementById("large").onclick = () => sketch.setBrush({size: 50})
+      document.getElementById("regular").onclick = () => sketch.setBrush({size: 15})
+      document.getElementById("opaque").onclick = () => sketch.setBrush({opacity: 1.0})
+      document.getElementById("transparent").onclick = () => sketch.setBrush({opacity: 0.5 })
+      document.getElementById("brush").onclick = () => sketch.setBrush({fill: false})
+      document.getElementById("fill").onclick = () => sketch.setBrush({fill: true})
+      document.getElementById("erase-on").onclick = () => sketch.setBrush({eraser: true})
+      document.getElementById("erase-off").onclick = () => sketch.setBrush({eraser: false})
       document.getElementById("undo").onclick = () => sketch.undo()
       document.getElementById("redo").onclick = () => sketch.redo()
       document.getElementById("restart").onclick = () => sketch.restart()

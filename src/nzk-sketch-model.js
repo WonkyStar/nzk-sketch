@@ -7,7 +7,7 @@ export default class NzkSketchModel {
     this.eraser = false
     this.fill = false
     this.opacity = 1.0
-    this.size = 10
+    this.size = 15
     this.scale = window.devicePixelRatio >= 1.5 ? 2 : 1
     this.actions = []
     this.lastActionIndex = -1

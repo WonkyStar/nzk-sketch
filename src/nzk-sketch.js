@@ -5,6 +5,7 @@ export default class NZKSketch {
     if(!props.containerEl){
       throw new Error("NZKSketch requires a containerEl property")
     }
+
     if(!props.width && props.height){
       throw new Error("NZKSketch requires fixed width and height properties")
     }
@@ -17,17 +18,10 @@ export default class NZKSketch {
     this.scale = window.devicePixelRatio >= 1.5 ? 2 : 1
     this.widthScaled = this.width * this.scale
     this.heightScaled = this.height * this.scale
-    this.orientation = (this.width > this.height) ? 'landscape' : 'portrait'
     this.template = props.template
     
     // Model init
     this.model = new NZKSketchModel()
-
-    // Optional props
-    this.setToolType(props.toolType || 'brush')
-    this.setToolColour(props.toolColour || [0, 0, 0])
-    this.setToolSize(props.toolSize || 15)
-    this.setToolOpacity(props.toolOpacity || 1.0 )
 
     // Canvas layers
     if(this.template) {
@@ -51,36 +45,25 @@ export default class NZKSketch {
   // Public API
   //
 
-  setToolType(type) {
-    switch(type) {
-      case 'eraser':
-        this.model.eraser = true
-        this.model.fill = false
-        this.model.opacity = 1.0
-        break
-      case 'fill': 
-        this.model.eraser = false
-        this.model.fill = true
-        break
-      default: 
-        this.model.eraser = false
-        this.model.fill = false
-    }
-  }
-
-  setToolColour(colour = [0, 0, 0]) {
-    if(this.toolType !== 'eraser') {
+  setBrush({ colour, size, opacity, fill, eraser }) {
+    if(colour !== undefined) {
       this.model.colour = colour
     }
-  }
 
-  setToolSize(size = 15) {
-    this.model.size = size
-  }
+    if(size !== undefined) {
+      this.model.size = size 
+    }
 
-  setToolOpacity(opacity = 1.0) {
-    if(this.toolType !== 'eraser') {
+    if(opacity !== undefined) {
       this.model.opacity = opacity
+    }
+
+    if(fill !== undefined) {
+      this.model.fill = fill
+    }
+
+    if(eraser !== undefined) {
+      this.model.eraser = eraser
     }
   }
 
@@ -412,7 +395,7 @@ export default class NZKSketch {
 
 	drawFinishedStroke(stroke) {
     if(!stroke) return
-		this.setDrawingStyle(stroke.style, this.drawingCanvasCtx)
+    this.setDrawingStyle(stroke.style, this.drawingCanvasCtx)
     this.drawFinished[stroke.style.key].apply(this, [stroke])
   }
 

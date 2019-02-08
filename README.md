@@ -16,12 +16,7 @@ import NZKSketch from 'nzk-sketch'
 
 const sketch = new NZKSketch({
   // Required
-  containerEl: yourContainerElement,
-  // Optional (with defaults) 
-  toolType: 'brush'
-  toolColour: [0,0,0],
-  toolSize: 15,
-  toolOpacity: 1.0,
+  containerEl: yourContainerElement
 })
 ```
 
@@ -29,35 +24,16 @@ This will fill the container element with a surface you can draw on. You are res
 
 ## API
 
-### setToolType
-You can currently choose between 3 types of tools: 
-- `brush`: A simple brush
-- `fill`: Brush that fills in at the end of a stoke. 
-- `eraser`: Does what it says on the tin
+### setBrush
+Set various brush options
+- `colour`: Brush colour (RGB array e.g [255, 255, 255])
+- `size`: Brush size (Integer, 15 is default)
+- `opacity`: Colour opacity (Float between 0 and 1)
+- `fill`: Fill in at the end of a stoke (Boolean) 
+- `eraser`: Set to eraser mode (Boolean)
 
 ```javascript
-  sketch.setToolType('fill') 
-```
-
-### setToolColour
-This sets the colour what will be use by your selected tool. The eraser tool will ignore this setting. It takes a single RGB array argument.
-
-```javascript
-  sketch.setToolColour([255,255,255]) 
-```
-
-### setToolSize
-Use this to change the tool size. It takes a number from 1 to 100 as an argument.
-
-```javascript
-  sketch.setToolSize(20) 
-```
-
-### setToolOpacity
-Use this to change the tool opacity. It takes a float from 0.1 to 1.0 as argument. The eraser tool will ignore this setting. 
-
-```javascript
-  sketch.setToolOpacity(0.5) 
+  sketch.setToolType({ colour: [0, 0, 0], size: 20 }) 
 ```
 
 ### export(options)

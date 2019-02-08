@@ -94,7 +94,7 @@
       this.eraser = false;
       this.fill = false;
       this.opacity = 1.0;
-      this.size = 10;
+      this.size = 15;
       this.scale = window.devicePixelRatio >= 1.5 ? 2 : 1;
       this.actions = [];
       this.lastActionIndex = -1;
@@ -263,15 +263,9 @@
       this.scale = window.devicePixelRatio >= 1.5 ? 2 : 1;
       this.widthScaled = this.width * this.scale;
       this.heightScaled = this.height * this.scale;
-      this.orientation = this.width > this.height ? 'landscape' : 'portrait';
       this.template = props.template; // Model init
 
-      this.model = new NzkSketchModel(); // Optional props
-
-      this.setToolType(props.toolType || 'brush');
-      this.setToolColour(props.toolColour || [0, 0, 0]);
-      this.setToolSize(props.toolSize || 15);
-      this.setToolOpacity(props.toolOpacity || 1.0); // Canvas layers
+      this.model = new NzkSketchModel(); // Canvas layers
 
       if (this.template) {
         this.initTemplateCanvas(this.template);
@@ -292,47 +286,32 @@
 
 
     _createClass(NZKSketch, [{
-      key: "setToolType",
-      value: function setToolType(type) {
-        switch (type) {
-          case 'eraser':
-            this.model.eraser = true;
-            this.model.fill = false;
-            this.model.opacity = 1.0;
-            break;
+      key: "setBrush",
+      value: function setBrush(_ref) {
+        var colour = _ref.colour,
+            size = _ref.size,
+            opacity = _ref.opacity,
+            fill = _ref.fill,
+            eraser = _ref.eraser;
 
-          case 'fill':
-            this.model.eraser = false;
-            this.model.fill = true;
-            break;
-
-          default:
-            this.model.eraser = false;
-            this.model.fill = false;
-        }
-      }
-    }, {
-      key: "setToolColour",
-      value: function setToolColour() {
-        var colour = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [0, 0, 0];
-
-        if (this.toolType !== 'eraser') {
+        if (colour !== undefined) {
           this.model.colour = colour;
         }
-      }
-    }, {
-      key: "setToolSize",
-      value: function setToolSize() {
-        var size = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 15;
-        this.model.size = size;
-      }
-    }, {
-      key: "setToolOpacity",
-      value: function setToolOpacity() {
-        var opacity = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.0;
 
-        if (this.toolType !== 'eraser') {
+        if (size !== undefined) {
+          this.model.size = size;
+        }
+
+        if (opacity !== undefined) {
           this.model.opacity = opacity;
+        }
+
+        if (fill !== undefined) {
+          this.model.fill = fill;
+        }
+
+        if (eraser !== undefined) {
+          this.model.eraser = eraser;
         }
       }
     }, {
