@@ -80,36 +80,36 @@ export default class NzkSketchModel {
     serialized.actions = []
 
     this.actions.forEach(action => {
-      if(action.type === 'stroke'){
-        serialized.actions.push(
-          action.object.serialize()
-        )
-      }
+      serialized.actions.push({
+        type: action.type,
+        object: action.object.serialize()
+      })
     })
 
     if (this.currentStroke) {
       serialized.currentStroke = this.currentStroke.serialize()
     }
 
-    return serialized;
+    return serialized
   }
 
   deserialize(serialized = {}) {
-    if(serialized.colour) {
+    if(serialized.colour !== undefined) {
       this.colour = serialized.colour
     }
-    if(serialized.opacity) {
+    if(serialized.opacity !== undefined) {
       this.opacity = serialized.opacity
     }
-    if(serialized.size) {
+    if(serialized.size !== undefined) {
       this.size = serialized.size
     }
-    if(serialized.scale) {
+    if(serialized.scale !== undefined) {
       this.scale = serialized.scale
     }
-    if(serialized.lastActionIndex){
+    if(serialized.lastActionIndex !== undefined) {
       this.lastActionIndex = serialized.lastActionIndex
     }
+
     if(serialized.actions){
       this.actions = []
 
@@ -117,12 +117,15 @@ export default class NzkSketchModel {
         if(action.type === 'stroke'){
           let stroke = new NZKSketchStrokeModel()
           stroke.deserialize(action.object)
-          action.stroke = stroke
+
+          this.actions.push({
+            type: action.type,
+            object: stroke
+          })
         }
-        this.actions.push(action)
       })
     }
-    if(serialized.currentStroke){
+    if(serialized.currentStroke !== undefined ){
       this.currentStroke = new NZKSketchStrokeModel()
       this.currentStroke.deserialize(serialized.currentStroke)
     }

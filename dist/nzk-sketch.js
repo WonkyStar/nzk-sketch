@@ -179,9 +179,10 @@
         };
         serialized.actions = [];
         this.actions.forEach(function (action) {
-          if (action.type === 'stroke') {
-            serialized.actions.push(action.object.serialize());
-          }
+          serialized.actions.push({
+            type: action.type,
+            object: action.object.serialize()
+          });
         });
 
         if (this.currentStroke) {
@@ -197,23 +198,23 @@
 
         var serialized = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-        if (serialized.colour) {
+        if (serialized.colour !== undefined) {
           this.colour = serialized.colour;
         }
 
-        if (serialized.opacity) {
+        if (serialized.opacity !== undefined) {
           this.opacity = serialized.opacity;
         }
 
-        if (serialized.size) {
+        if (serialized.size !== undefined) {
           this.size = serialized.size;
         }
 
-        if (serialized.scale) {
+        if (serialized.scale !== undefined) {
           this.scale = serialized.scale;
         }
 
-        if (serialized.lastActionIndex) {
+        if (serialized.lastActionIndex !== undefined) {
           this.lastActionIndex = serialized.lastActionIndex;
         }
 
@@ -223,14 +224,16 @@
             if (action.type === 'stroke') {
               var stroke = new NzkSketchStrokeModel();
               stroke.deserialize(action.object);
-              action.stroke = stroke;
-            }
 
-            _this.actions.push(action);
+              _this.actions.push({
+                type: action.type,
+                object: stroke
+              });
+            }
           });
         }
 
-        if (serialized.currentStroke) {
+        if (serialized.currentStroke !== undefined) {
           this.currentStroke = new NzkSketchStrokeModel();
           this.currentStroke.deserialize(serialized.currentStroke);
         }
@@ -280,6 +283,13 @@
       this.initDrawAnimations();
       this.setDrawingStyle(this.model.getStyle(), this.bufferCanvasCtx);
       this.isDrawing = false;
+
+      this.onChange = props.onChange || function () {};
+
+      if (props.sketchData) {
+        this.deserialize(props.sketchData);
+        this.drawExistingSketch();
+      }
     } //
     // Public API
     //
@@ -371,7 +381,9 @@
         this.drawingCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled);
 
         for (var i = 0; i <= this.model.lastActionIndex; i++) {
-          this.drawUndoStroke(this.model.actions[i].object);
+          if (this.model.actions[i].type === 'stroke') {
+            this.drawUndoStroke(this.model.actions[i].object);
+          }
         }
       }
     }, {
@@ -380,7 +392,10 @@
         if (!this.model.canRedo()) return;
         this.model.lastActionIndex++;
         var action = this.model.actions[this.model.lastActionIndex];
-        this.drawUndoStroke(action.object);
+
+        if (action.type === 'stroke') {
+          this.drawUndoStroke(action.object);
+        }
       }
     }, {
       key: "canUndo",
@@ -397,6 +412,22 @@
       value: function restart() {
         this.model.reset();
         this.drawingCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled);
+        this.onChange();
+      }
+    }, {
+      key: "serialize",
+      value: function serialize() {
+        return this.model.serialize();
+      }
+    }, {
+      key: "deserialize",
+      value: function deserialize(serialized) {
+        this.model.deserialize(serialized);
+      }
+    }, {
+      key: "getNumberOfActions",
+      value: function getNumberOfActions() {
+        return this.model.lastActionIndex + 1;
       } //
       // Internal helpers
       //
@@ -620,6 +651,20 @@
         this.bufferCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled);
         this.drawFinishedStroke(this.model.currentStroke);
         this.model.saveStroke();
+        this.onChange();
+      }
+    }, {
+      key: "drawExistingSketch",
+      value: function drawExistingSketch() {
+        var _this2 = this;
+
+        if (this.model.lastActionIndex > -1) {
+          this.model.actions.forEach(function (action) {
+            if (action.type === 'stroke') {
+              _this2.drawExistingStroke(action.object);
+            }
+          });
+        }
       }
     }, {
       key: "setDrawingStyle",
@@ -634,11 +679,11 @@
     }, {
       key: "strokeAnimation",
       value: function strokeAnimation() {
-        var _this2 = this;
+        var _this3 = this;
 
         this.drawAnimationStroke(this.model.currentStroke);
         this.reqStroke = window.requestAnimationFrame(function () {
-          return _this2.strokeAnimation.apply(_this2);
+          return _this3.strokeAnimation.apply(_this3);
         });
       }
     }, {

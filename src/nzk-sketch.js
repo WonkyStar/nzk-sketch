@@ -39,6 +39,13 @@ export default class NZKSketch {
     this.setDrawingStyle(this.model.getStyle(), this.bufferCanvasCtx)
 
     this.isDrawing = false
+
+    this.onChange = props.onChange || function () {}
+  
+    if(props.sketchData) {
+      this.deserialize(props.sketchData)
+      this.drawExistingSketch()
+    }
   }
 
   //
@@ -125,7 +132,9 @@ export default class NZKSketch {
     this.drawingCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
 
     for(let i = 0; i <= this.model.lastActionIndex; i++) {
-      this.drawUndoStroke(this.model.actions[i].object)
+      if(this.model.actions[i].type === 'stroke') {
+        this.drawUndoStroke(this.model.actions[i].object)
+      }
     }
   }
 
@@ -134,9 +143,11 @@ export default class NZKSketch {
 
 		this.model.lastActionIndex++
 
-		let action = this.model.actions[this.model.lastActionIndex]
-
-		this.drawUndoStroke(action.object)
+    let action = this.model.actions[this.model.lastActionIndex]
+    
+    if(action.type === 'stroke') {
+      this.drawUndoStroke(action.object)
+    }
   }
 
   canUndo() {
@@ -151,6 +162,20 @@ export default class NZKSketch {
     this.model.reset()
     
     this.drawingCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
+
+    this.onChange()
+  }
+
+  serialize() {
+    return this.model.serialize()
+  }
+
+  deserialize(serialized) {
+    this.model.deserialize(serialized)
+  }
+
+  getNumberOfActions() {
+    return this.model.lastActionIndex + 1
   }
 
   //
@@ -338,11 +363,11 @@ export default class NZKSketch {
   startDraw(point) {
     this.isDrawing = true
 
-		this.model.initStroke(point)
+    this.model.initStroke(point)
 
-		if(this.model.currentStroke.style.eraser && this.model.currentStroke.style.opacity === 1.0) {
+    if(this.model.currentStroke.style.eraser && this.model.currentStroke.style.opacity === 1.0) {
       this.cacheCanvasCtx.globalCompositeOperation = "copy"
-			this.cacheCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled)
+      this.cacheCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled)
       this.setDrawingStyle(this.model.currentStroke.style, this.drawingCanvasCtx)
     }
 
@@ -363,6 +388,17 @@ export default class NZKSketch {
     this.bufferCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
     this.drawFinishedStroke(this.model.currentStroke)
     this.model.saveStroke()
+    this.onChange()
+  }
+
+	drawExistingSketch() {
+    if(this.model.lastActionIndex > -1){
+      this.model.actions.forEach(action => {
+        if(action.type === 'stroke'){
+          this.drawExistingStroke(action.object)
+        }
+      })
+    }
   }
 
   setDrawingStyle (style, ctx) {

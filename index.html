@@ -41,17 +41,26 @@
     <button id='restart'>restart</button>
     <button id='export'>export</button>
     <button id='export-processed'>export processed</button>
+    <button id='resize'>resize</button>
   </div>
   <div id="sketch-container"></div>
   <script type="text/javascript" src="/dist/nzk-sketch.js"></script>
   <script>
     let template = new Image()
     template.onload = () => {
+      let sketchData = localStorage.getItem('sketch-data')
+
       let sketch = new nzkSketch({
         containerEl: document.getElementById('sketch-container'),
-        template: template
+        template: template,
+        sketchData: localStorage.getItem('sketch-data') && JSON.parse(localStorage.getItem('sketch-data')),
+        onChange: () => {
+          localStorage.setItem('sketch-data', JSON.stringify(sketch.serialize()))
+        }
       })
+
       window.sketch = sketch
+
       document.getElementById("black").onclick = () => sketch.setBrush({colour: [0,0,0]})
       document.getElementById("blue").onclick = () => sketch.setBrush({colour: [135,206,235]})
       document.getElementById("red").onclick = () => sketch.setBrush({colour:[220,20,60]})
@@ -66,10 +75,16 @@
       document.getElementById("undo").onclick = () => sketch.undo()
       document.getElementById("redo").onclick = () => sketch.redo()
       document.getElementById("restart").onclick = () => sketch.restart()
+      document.getElementById("resize").onclick = () => sketch.resize({
+        width: 150,
+        height: 150,
+      })
+
       document.getElementById("export").onclick = () => {
         let newTab = window.open()
         newTab.document.body.innerHTML = `<img src="${sketch.export()}">`
       }
+
       document.getElementById("export-processed").onclick = () => {
         let newTab = window.open()
         newTab.document.body.innerHTML = `<img src="${sketch.export({ 

@@ -17,6 +17,9 @@ import NZKSketch from 'nzk-sketch'
 const sketch = new NZKSketch({
   // Required
   containerEl: yourContainerElement
+  // Optional
+  sketchData: { ... }, // Sketch data you have previously extrated with sketch.serialize and would like to restore
+  onChange: () => {}, // Hook that gets called on Change
 })
 ```
 
@@ -68,6 +71,15 @@ This completely clears the current drawing. You can't undo this action.
 ```javascript
   sketch.restart() 
 ```
+
+### drawExistingSketch
+
+This method will attempt to draw any existing sketch. You can load an existing sketch by using `deserialize`
+
+### serialize / deserialize
+
+You can serialize/deserialize the sketch data. Useful to keep it in localstorage and avoid the drawing being lost on a page refresh.
+Here is an example of code that will do just data
 
 ## TODO
 
