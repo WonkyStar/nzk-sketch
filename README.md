@@ -73,7 +73,6 @@ This completely clears the current drawing. You can't undo this action.
 
 * Automatically adapt to the container size if it changes after the first page load.
 * `addTemplate`: New method to allow for adding one or more template images and specify if each image should be included in the exported drawing.
-* FIX fill tool when opacity is less than 1.0
 * Add/Remove stickers
 * New brush styles
 

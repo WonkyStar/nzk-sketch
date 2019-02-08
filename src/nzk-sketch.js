@@ -425,39 +425,44 @@ export default class NZKSketch {
     }
   }
 
-	drawTransparentFillFinal(stroke) {
-		this.cacheCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
+  drawTransparentFillFinal(stroke) {
+    this.cacheCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
     this.cacheCanvasCtx.globalCompositeOperation = "source-over"
-    stroke.style.opacity = stroke.style.opacity || 1
-		this.setDrawingStyle(stroke.style, this.cacheCanvasCtx)
-		this.trace(stroke, this.cacheCanvasCtx)
-		this.cacheCanvasCtx.closePath()
-		this.cacheCanvasCtx.fill()
-		this.cacheCanvasCtx.stroke()
+    this.setDrawingStyle({ ...stroke.style, opacity: 1 }, this.cacheCanvasCtx)
+    this.trace(stroke, this.cacheCanvasCtx)
+    this.cacheCanvasCtx.closePath()
+    this.cacheCanvasCtx.stroke()
+    this.cacheCanvasCtx.fill()
 
-		this.drawingCanvasCtx.globalCompositeOperation = "source-over"
-		this.drawingCanvasCtx.globalAlpha = stroke.style.opacity
-		this.drawingCanvasCtx.drawImage(this.cacheCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled)
+    this.drawingCanvasCtx.globalCompositeOperation = "source-over"
+    this.drawingCanvasCtx.globalAlpha = stroke.style.opacity
+    this.drawingCanvasCtx.drawImage(this.cacheCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled)
     this.drawingCanvasCtx.globalAlpha = 1.0
   }
 
-	drawStrokeFinal(stroke) {
-		this.drawingCanvasCtx.globalCompositeOperation = "source-over"
-		this.trace(stroke, this.drawingCanvasCtx)
+  drawStrokeFinal(stroke) {
+    this.drawingCanvasCtx.globalCompositeOperation = "source-over"
+    this.trace(stroke, this.drawingCanvasCtx)
     this.drawingCanvasCtx.stroke()
   }
 
-	drawFillFinal(stroke) {
-		this.drawingCanvasCtx.globalCompositeOperation = "source-over"
-		this.trace(stroke, this.drawingCanvasCtx)
-		this.drawingCanvasCtx.closePath()
-		this.drawingCanvasCtx.fill()
+  drawFillFinal(stroke) {
+    this.drawingCanvasCtx.globalCompositeOperation = "source-over"
+    this.trace(stroke, this.drawingCanvasCtx)
+    this.drawingCanvasCtx.closePath()
+    this.drawingCanvasCtx.fill()
     this.drawingCanvasCtx.stroke()
   }
 
 	drawFillAndStroke(stroke) {
-		this.bufferCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
-		this.trace(stroke, this.bufferCanvasCtx)
+    this.bufferCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled)
+    this.trace(stroke, this.bufferCanvasCtx)
+    this.setDrawingStyle({ ...stroke.style, opacity: 1 }, this.bufferCanvasCtx)
+    this.bufferCanvasCtx.globalAlpha = stroke.style.opacity
+    if(this.model.fill) {
+      this.bufferCanvasCtx.closePath()
+      this.bufferCanvasCtx.fill()
+    }
     this.bufferCanvasCtx.stroke()
   }
 

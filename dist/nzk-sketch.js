@@ -696,12 +696,13 @@
       value: function drawTransparentFillFinal(stroke) {
         this.cacheCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled);
         this.cacheCanvasCtx.globalCompositeOperation = "source-over";
-        stroke.style.opacity = stroke.style.opacity || 1;
-        this.setDrawingStyle(stroke.style, this.cacheCanvasCtx);
+        this.setDrawingStyle(Object.assign({}, stroke.style, {
+          opacity: 1
+        }), this.cacheCanvasCtx);
         this.trace(stroke, this.cacheCanvasCtx);
         this.cacheCanvasCtx.closePath();
-        this.cacheCanvasCtx.fill();
         this.cacheCanvasCtx.stroke();
+        this.cacheCanvasCtx.fill();
         this.drawingCanvasCtx.globalCompositeOperation = "source-over";
         this.drawingCanvasCtx.globalAlpha = stroke.style.opacity;
         this.drawingCanvasCtx.drawImage(this.cacheCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled);
@@ -728,6 +729,16 @@
       value: function drawFillAndStroke(stroke) {
         this.bufferCanvasCtx.clearRect(0, 0, this.widthScaled, this.heightScaled);
         this.trace(stroke, this.bufferCanvasCtx);
+        this.setDrawingStyle(Object.assign({}, stroke.style, {
+          opacity: 1
+        }), this.bufferCanvasCtx);
+        this.bufferCanvasCtx.globalAlpha = stroke.style.opacity;
+
+        if (this.model.fill) {
+          this.bufferCanvasCtx.closePath();
+          this.bufferCanvasCtx.fill();
+        }
+
         this.bufferCanvasCtx.stroke();
       }
     }, {
