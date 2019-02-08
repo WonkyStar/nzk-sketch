@@ -36,7 +36,7 @@ Set various brush options
 - `eraser`: Set to eraser mode (Boolean)
 
 ```javascript
-  sketch.setToolType({ colour: [0, 0, 0], size: 20 }) 
+  sketch.setBrush({ colour: [0, 0, 0], size: 20 }) 
 ```
 
 ### export(options)

@@ -16,8 +16,6 @@
       margin-bottom: 5px;
     }
     #sketch-container{
-      width: 640px;
-      height: 480px;
       background-color: #ebebeb;
       position: relative;
     }
@@ -41,17 +39,20 @@
     <button id='restart'>restart</button>
     <button id='export'>export</button>
     <button id='export-processed'>export processed</button>
-    <button id='resize'>resize</button>
   </div>
   <div id="sketch-container"></div>
   <script type="text/javascript" src="/dist/nzk-sketch.js"></script>
   <script>
     let template = new Image()
+    let sketchContainer = document.getElementById('sketch-container')
+    sketchContainer.style.width = window.innerWidth/2 + 'px'
+    sketchContainer.style.height = window.innerHeight/2 + 'px'
+
     template.onload = () => {
       let sketchData = localStorage.getItem('sketch-data')
 
       let sketch = new nzkSketch({
-        containerEl: document.getElementById('sketch-container'),
+        containerEl: sketchContainer,
         template: template,
         sketchData: localStorage.getItem('sketch-data') && JSON.parse(localStorage.getItem('sketch-data')),
         onChange: () => {
@@ -75,10 +76,6 @@
       document.getElementById("undo").onclick = () => sketch.undo()
       document.getElementById("redo").onclick = () => sketch.redo()
       document.getElementById("restart").onclick = () => sketch.restart()
-      document.getElementById("resize").onclick = () => sketch.resize({
-        width: 150,
-        height: 150,
-      })
 
       document.getElementById("export").onclick = () => {
         let newTab = window.open()
