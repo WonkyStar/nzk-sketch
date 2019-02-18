@@ -1,5 +1,7 @@
 # nzk-sketch
 
+[Demo here](https://codepen.io/BenAfonso/pen/LMZaVz?editors=1010)
+
 Night Zookeeper's UI less free-draw canvas library.
 
 ## Getting Started
