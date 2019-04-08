@@ -342,7 +342,15 @@
         options.crop = options.crop || false;
         options.maxWidth = options.maxWidth || false;
         options.maxHeight = options.maxHeight || false;
-        var canvasToExport = null; // If there is a template merge the drawing onto it and export that
+        var canvasToExport = null; // Check if there is anything to export
+
+        var boxForEmptyCheck = this.findBoundingBox(this.drawingCanvasCtx);
+        console.log(boxForEmptyCheck);
+
+        if (boxForEmptyCheck.width < 5) {
+          return null;
+        } // If there is a template merge the drawing onto it and export that
+
 
         if (this.template) {
           this.templateCanvasCtx.drawImage(this.drawingCanvasCtx.canvas, 0, 0, this.widthScaled, this.heightScaled);
