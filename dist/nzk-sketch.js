@@ -345,7 +345,6 @@
         var canvasToExport = null; // Check if there is anything to export
 
         var boxForEmptyCheck = this.findBoundingBox(this.drawingCanvasCtx);
-        console.log(boxForEmptyCheck);
 
         if (boxForEmptyCheck.width < 5) {
           return null;

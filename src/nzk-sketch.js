@@ -91,10 +91,8 @@ export default class NZKSketch {
     let canvasToExport = null
 
     // Check if there is anything to export
-  
     let boxForEmptyCheck = this.findBoundingBox(this.drawingCanvasCtx)
-    console.log(boxForEmptyCheck)
-    
+
     if(boxForEmptyCheck.width < 5) {
       return null
     }
